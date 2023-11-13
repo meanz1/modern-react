@@ -8,7 +8,7 @@ function Square({ value, onSquareClick }) {
   );
 }
 
-function Board({ xIsNext, squares, onPlay, currentMove }) {
+function Board({ xIsNext, squares, onPlay }) {
   const handleClick = (i) => {
     if (squares[i] || calculateWinner(squares)) return;
     const nextSquares = squares.slice();
@@ -48,8 +48,10 @@ function Board({ xIsNext, squares, onPlay, currentMove }) {
 function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
+  const [isIncreasing, setIsIncreasing] = useState(true);
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
+  const currentMode = isIncreasing ? "오름차순" : "내림차순";
 
   const handlePlay = (nextSquares) => {
     const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
@@ -71,18 +73,20 @@ function Game() {
       </li>
     );
   });
+  const reverseMoves = moves.slice().reverse();
+
+  const changeSortingMode = () => {
+    setIsIncreasing((value) => !value);
+  };
+
   return (
     <div className="game">
       <div className="game-board">
-        <Board
-          xIsNext={xIsNext}
-          squares={currentSquares}
-          onPlay={handlePlay}
-          currentMove={currentMove}
-        />
+        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
       </div>
       <div className="game-info">
-        <ol>{moves}</ol>
+        <button onClick={changeSortingMode}>{currentMode}</button>
+        {isIncreasing ? <ul> {moves}</ul> : <ul>{reverseMoves}</ul>}
       </div>
     </div>
   );
