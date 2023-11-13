@@ -1,19 +1,19 @@
 import { useState } from "react";
 
-function Square({ value, onSquareClick }) {
+function Square({ value, onSquareClick, idx }) {
   return (
-    <button className="square" onClick={onSquareClick}>
+    <button className="square" onClick={() => onSquareClick(idx)}>
       {value}
     </button>
   );
 }
 
-function Board({ xIsNext, squares, onPlay }) {
+function Board({ xIsNext, squares: { squares }, onPlay }) {
   const handleClick = (i) => {
     if (squares[i] || calculateWinner(squares)) return;
     const nextSquares = squares.slice();
     nextSquares[i] = xIsNext ? "X" : "O";
-    onPlay(nextSquares);
+    onPlay(nextSquares, i);
   };
 
   const winner = calculateWinner(squares);
@@ -25,16 +25,17 @@ function Board({ xIsNext, squares, onPlay }) {
   return (
     <>
       <div className="status">{status}</div>
-      {[0, 3, 6].map((rowIdx) => {
+      {[0, 1, 2].map((rowIdx) => {
         return (
           <div className="board-row" key={rowIdx}>
             {[0, 1, 2].map((colIdx) => {
-              const idx = rowIdx + colIdx;
+              const idx = rowIdx * 3 + colIdx;
               return (
                 <Square
                   key={idx}
                   value={squares[idx]}
                   onSquareClick={() => handleClick(idx)}
+                  idx={idx}
                 />
               );
             })}
@@ -46,15 +47,23 @@ function Board({ xIsNext, squares, onPlay }) {
 }
 
 function Game() {
-  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [history, setHistory] = useState([
+    { squares: Array(9).fill(null), rowCol: { row: null, col: null } },
+  ]);
+
   const [currentMove, setCurrentMove] = useState(0);
   const [isIncreasing, setIsIncreasing] = useState(true);
+
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
   const currentMode = isIncreasing ? "오름차순" : "내림차순";
 
-  const handlePlay = (nextSquares) => {
-    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+  const handlePlay = (nextSquares, idx) => {
+    console.log(nextSquares);
+    const nextHistory = [
+      ...history.slice(0, currentMove + 1),
+      { squares: nextSquares, rowCol: calculateRC(idx) },
+    ];
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
   };
@@ -63,9 +72,19 @@ function Game() {
     setCurrentMove(nextMove);
   };
 
-  const moves = history.map((squares, move) => {
+  const calculateRC = (move) => {
+    const row = Math.floor(move / 3);
+    const col = move % 3;
+    return { row, col };
+  };
+
+  const moves = history.map((entry, move) => {
+    const { row, col } = entry.rowCol;
     let description;
-    description = move > 0 ? "Go to move #" + move : "Go to game start";
+    description =
+      move > 0
+        ? `Go to move #${move} (row: ${row}, col: ${col}) `
+        : "Go to game start";
 
     return (
       <li key={move}>
