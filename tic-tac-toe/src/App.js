@@ -27,11 +27,12 @@ function Board({ xIsNext, squares, onPlay, currentMove }) {
       <div className="status">{status}</div>
       {[0, 3, 6].map((rowIdx) => {
         return (
-          <div className="board-row">
+          <div className="board-row" key={rowIdx}>
             {[0, 1, 2].map((colIdx) => {
               const idx = rowIdx + colIdx;
               return (
                 <Square
+                  key={idx}
                   value={squares[idx]}
                   onSquareClick={() => handleClick(idx)}
                 />
