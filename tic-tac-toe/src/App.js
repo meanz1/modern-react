@@ -1,8 +1,12 @@
 import { useState } from "react";
 
-function Square({ value, onSquareClick, idx }) {
+function Square({ value, onSquareClick, idx, winner }) {
   return (
-    <button className="square" onClick={() => onSquareClick(idx)}>
+    <button
+      className="square"
+      style={{ color: winner ? "orange" : "black" }}
+      onClick={() => onSquareClick(idx)}
+    >
       {value}
     </button>
   );
@@ -16,11 +20,27 @@ function Board({ xIsNext, squares: { squares }, onPlay }) {
     onPlay(nextSquares, i);
   };
 
-  const winner = calculateWinner(squares);
   let status;
-  status = winner
-    ? "Winner: " + winner
-    : "Next Player: " + (xIsNext ? "X" : "O");
+  let winner = null;
+  if (calculateWinner(squares)) {
+    const { a, b, c } = calculateWinner(squares);
+    winner = { a, b, c };
+    status = "Winner: " + squares[a];
+  } else if (!calculateWinner(squares) && cntClick(squares) === 9) {
+    status = "Draw";
+  } else {
+    status = "Next Player: " + (xIsNext ? "X" : "O");
+  }
+
+  function cntClick(squares) {
+    let cnt = 0;
+    squares.forEach((elem) => {
+      if (elem) {
+        cnt += 1;
+      }
+    });
+    return cnt;
+  }
 
   return (
     <>
@@ -33,6 +53,11 @@ function Board({ xIsNext, squares: { squares }, onPlay }) {
               return (
                 <Square
                   key={idx}
+                  winner={
+                    winner
+                      ? idx === winner.a || idx === winner.b || idx === winner.c
+                      : false
+                  }
                   value={squares[idx]}
                   onSquareClick={() => handleClick(idx)}
                   idx={idx}
@@ -124,8 +149,9 @@ function calculateWinner(squares) {
   ];
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c])
-      return squares[a];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return { a, b, c };
+    }
   }
   return null;
 }
